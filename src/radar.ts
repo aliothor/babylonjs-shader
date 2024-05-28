@@ -45,15 +45,48 @@ function createScene() {
     uniform vec3 iResolution;
     uniform float iTime;
 
-    void mainImage(out vec4 fragColor, in vec2 fragCoord){
+#define green vec3(0.0,0.0,1.0)
 
-        vec2 uv=fragCoord/iResolution.xy;
+// returns a vec3 color from every pixel requested.
+// Generates a BnW Ping on normalized 2d coordinate system
+vec3 RadarPing(in vec2 uv, in vec2 center, in float innerTail,
+               in float frontierBorder, in float timeResetSeconds,
+               in float radarPingSpeed, in float fadeDistance)
+{
+    vec2 diff = center-uv;
+    float r = length(diff);
+    float time = mod(iTime, timeResetSeconds) * radarPingSpeed;
 
-        vec3 col=0.5+0.5*cos(iTime+uv.xyx+vec3(0,2,4));
+    float circle;
+    // r is the distance to the center.
+    // circle = BipCenter---//---innerTail---time---frontierBorder
+    //illustration
+    //https://sketch.io/render/sk-14b54f90080084bad1602f81cadd4d07.jpeg
+    circle += smoothstep(time - innerTail, time, r) * smoothstep(time + frontierBorder,time, r);
+	circle *= smoothstep(fadeDistance, 0.0, r); // fade to 0 after fadeDistance
 
-        fragColor=vec4(col,1.0);
+    return vec3(circle);
+}
 
-    }
+void mainImage( out vec4 fragColor, in vec2 fragCoord )
+{
+    //normalize coordinates
+    vec2 uv = fragCoord.xy / iResolution.xy; //move coordinates to 0..1
+    uv = uv.xy*2.; // translate to the center
+    uv += vec2(-1.0, -1.0);
+    uv.x *= iResolution.x/iResolution.y; //correct the aspect ratio
+
+	vec3 color;
+    // generate some radar pings
+    float fadeDistance = 1.0;
+    float resetTimeSec = 4.0;
+    float radarPingSpeed = 0.3;
+    vec2 greenPing = vec2(0.0, 0.0);
+    color += RadarPing(uv, greenPing, 0.25, 0.025, resetTimeSec, radarPingSpeed, fadeDistance) * green;
+
+    //return the new color
+	fragColor = vec4(color,1.0);
+}
 
     void main(){
         mainImage(gl_FragColor,gl_FragCoord.xy);
@@ -67,6 +100,7 @@ function createScene() {
     shaderMaterial.setVector3('iResolution', new Vector3(canvas.width, canvas.height, 1))
 
     plane.material = shaderMaterial
+
 
     scene.onBeforeRenderObservable.add(() => {
         const t = performance.now() * 0.001
