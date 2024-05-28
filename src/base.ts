@@ -18,15 +18,15 @@ function createScene() {
 
   const engine = new Engine(canvas)
 
-  var scene = new Scene(engine)
+  const scene = new Scene(engine)
 
-  var camera = new FreeCamera('camera1', new Vector3(0, 5, -10), scene)
+  const camera = new FreeCamera('camera1', new Vector3(0, 5, -10), scene)
 
   camera.setTarget(Vector3.Zero())
 
   camera.attachControl(canvas, true)
 
-  var light = new HemisphericLight('light1', new Vector3(0, 1, 0), scene)
+  const light = new HemisphericLight('light1', new Vector3(0, 1, 0), scene)
 
   light.intensity = 0.7
 

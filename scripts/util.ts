@@ -1,7 +1,6 @@
 import path from 'node:path'
 import fs from 'node:fs/promises'
 
-
 export async function getTemplateName(dir: string) {
     const templateDir = dir
     const inputs: Record<string, string> = {}
